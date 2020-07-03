@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.wavetech.webappkotlin"
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -18,11 +18,11 @@ android {
 
     productFlavors {
         dev {
-            buildConfigField "String", "URL", "\"https://github.com/WaheedNazir\""
+            buildConfigField "String", "URL", "\"https://relay.amazon.com/tours/loadboard?\""
         }
 
         live {
-            buildConfigField "String", "URL", "\"https://github.com/WaheedNazir\""
+            buildConfigField "String", "URL", "\"https://relay.amazon.com/tours/loadboard?\""
         }
     }
 

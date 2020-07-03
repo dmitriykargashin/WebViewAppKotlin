@@ -10,6 +10,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.webkit.*
 import android.widget.Toast
@@ -22,6 +23,7 @@ import com.finja.payrollplus.utilities.NetworkChangeReceiver
 import com.finja.payrollplus.utilities.NetworkUtils
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.general_custom_dialog_network_error.*
+
 
 class WebViewActivity : AppCompatActivity() {
 
@@ -41,6 +43,17 @@ class WebViewActivity : AppCompatActivity() {
             val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
             this.registerReceiver(networkChangeReceiver, intentFilter)
         }
+
+        button.setOnClickListener {
+            webView.evaluateJavascript(
+                "function click() { \n" +
+                        "                         const refreshBtn = document.querySelector('.loadboard-reload__refresh-icon--reload-icon');\n" +
+                        "                         refreshBtn.click() \n" +
+                        "                         };" +
+                        "click();",
+                ValueCallback<String?> { s ->
+                    Log.d("LogName", s) // Prints 'this'
+                }) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
