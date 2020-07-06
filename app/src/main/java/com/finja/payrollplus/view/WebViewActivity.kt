@@ -10,6 +10,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.webkit.*
@@ -23,6 +24,8 @@ import com.finja.payrollplus.utilities.NetworkChangeReceiver
 import com.finja.payrollplus.utilities.NetworkUtils
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.general_custom_dialog_network_error.*
+import java.util.*
+import kotlin.concurrent.schedule
 
 
 class WebViewActivity : AppCompatActivity() {
@@ -44,17 +47,40 @@ class WebViewActivity : AppCompatActivity() {
             this.registerReceiver(networkChangeReceiver, intentFilter)
         }
 
+
+
+
         button.setOnClickListener {
-            webView.evaluateJavascript(
-                "function click() { \n" +
-                        "                         const refreshBtn = document.querySelector('.loadboard-reload__refresh-icon--reload-icon');\n" +
-                        "                         refreshBtn.click() \n" +
-                        "                         };" +
-                        "click();",
-                ValueCallback<String?> { s ->
-                    Log.d("LogName", s) // Prints 'this'
-                }) }
+            Handler().postDelayed({
+                clickRefresh()
+            }, 2000)
+//            Timer("SettingUp", false).schedule(2000) {
+//
+//            }
+
+
+        }
     }
+
+    private fun clickRefresh() {
+        webView.evaluateJavascript(
+            "click();",
+            ValueCallback<String?> { s ->
+                Log.d("LogName", s) // Prints 'this'
+            })
+    }
+
+    private fun injectScripts() {
+        webView.evaluateJavascript(
+            "function click() { \n" +
+                    "                         const refreshBtn = document.querySelector('.loadboard-reload__refresh-icon--reload-icon');\n" +
+                    "                         refreshBtn.click() \n" +
+                    "                         };",
+            ValueCallback<String?> { s ->
+                Log.d("LogName", s) // Prints 'this'
+            })
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,11 +149,16 @@ class WebViewActivity : AppCompatActivity() {
             if (networkUtils.haveNetworkConnection(this@WebViewActivity)) {
                 webView.setVisibility(View.VISIBLE)
                 overlayView.visibility = View.GONE
+                injectScripts();
                 super.onPageFinished(view, url)
             }
         }
 
-        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+        override fun onReceivedError(
+            view: WebView,
+            request: WebResourceRequest,
+            error: WebResourceError
+        ) {
             try {
                 webView.setVisibility(View.GONE)
                 imgv_network_error.setVisibility(View.VISIBLE)
@@ -137,14 +168,22 @@ class WebViewActivity : AppCompatActivity() {
             }
 
         }
+
+
     }
+
 
     /**
      *
      */
     internal inner class MyWebChromeClient : WebChromeClient() {
 
-        override fun onJsConfirm(view: WebView, url: String, message: String, result: JsResult): Boolean {
+        override fun onJsConfirm(
+            view: WebView,
+            url: String,
+            message: String,
+            result: JsResult
+        ): Boolean {
             return super.onJsConfirm(view, url, message, result)
         }
 
@@ -158,7 +197,12 @@ class WebViewActivity : AppCompatActivity() {
             return super.onJsPrompt(view, url, message, defaultValue, result)
         }
 
-        override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
+        override fun onJsAlert(
+            view: WebView,
+            url: String,
+            message: String,
+            result: JsResult
+        ): Boolean {
             result.confirm()
             if (message.equals("exit", ignoreCase = true)) {
                 finish()
@@ -307,7 +351,8 @@ class WebViewActivity : AppCompatActivity() {
      */
     override fun onDestroy() {
         try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(mNotificationReceiverInternet)
+            LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(mNotificationReceiverInternet)
             LocalBroadcastManager.getInstance(this).unregisterReceiver(networkChangeReceiver)
         } catch (e: Exception) {
             e.printStackTrace()
