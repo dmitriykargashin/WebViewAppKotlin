@@ -22,16 +22,23 @@ import com.finja.payrollplus.BuildConfig
 import com.finja.payrollplus.R
 import com.finja.payrollplus.utilities.NetworkChangeReceiver
 import com.finja.payrollplus.utilities.NetworkUtils
+import com.squareup.okhttp.OkHttpClient
+import com.squareup.okhttp.Request
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.general_custom_dialog_network_error.*
-import java.util.*
-import kotlin.concurrent.schedule
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
+import kotlin.concurrent.thread
 
 
 class WebViewActivity : AppCompatActivity() {
 
     private val networkUtils = NetworkUtils()
     private val networkChangeReceiver = NetworkChangeReceiver()
+    private var flag = false
+
 
     override fun onStart() {
         super.onStart()
@@ -52,11 +59,18 @@ class WebViewActivity : AppCompatActivity() {
 
         button.setOnClickListener {
             Handler().postDelayed({
-                clickRefresh()
+                clickRefresh();
             }, 2000)
 //            Timer("SettingUp", false).schedule(2000) {
 //
 //            }
+
+
+        }
+
+
+        button2.setOnClickListener {
+            checkIsFound()
 
 
         }
@@ -70,12 +84,33 @@ class WebViewActivity : AppCompatActivity() {
             })
     }
 
+
+    private fun checkIsFound() {
+        webView.evaluateJavascript(
+            "found=isFound();" +
+                    "android.isFound(found);" +
+                    "",
+            ValueCallback<String?> { s ->
+                Log.d("LogName", s) // Prints 'this'
+            })
+    }
+
     private fun injectScripts() {
         webView.evaluateJavascript(
             "function click() { \n" +
                     "                         const refreshBtn = document.querySelector('.loadboard-reload__refresh-icon--reload-icon');\n" +
                     "                         refreshBtn.click() \n" +
-                    "                         };",
+                    "                         };\n" +
+
+                    " function isFound() {\n" +
+                    "    summaryText = document.querySelector('.summary-text')\n" +
+                    "    text = summaryText.textContent || summaryText.innerText;\n" +
+                    "    //  console.log(text)\n" +
+                    "    if (text[0] == '0')\n" +
+                    "        return false\n" +
+                    "    else return true\n" +
+                    "       } " +
+                    "let found = false",
             ValueCallback<String?> { s ->
                 Log.d("LogName", s) // Prints 'this'
             })
@@ -103,9 +138,10 @@ class WebViewActivity : AppCompatActivity() {
         val webSettings = webView.getSettings()
         webSettings.setJavaScriptEnabled(true)
         webSettings.setBuiltInZoomControls(false)
+        webSettings.setDomStorageEnabled(true)
         webView.setWebViewClient(myWebClient())
         webView.setWebChromeClient(MyWebChromeClient())
-        webView.addJavascriptInterface(JavaScriptHandler(), "Your_Handler_NAME")
+        webView.addJavascriptInterface(JavaScriptHandler(), "android")
         try {
             webView.loadData("", "text/html", null)
             webView.loadUrl(url)
@@ -132,6 +168,7 @@ class WebViewActivity : AppCompatActivity() {
      */
     inner class myWebClient : WebViewClient() {
         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+            flag = false
             if (networkUtils.haveNetworkConnection(this@WebViewActivity)) {
                 imgv_network_error.setVisibility(View.GONE)
                 webView.setVisibility(View.VISIBLE)
@@ -150,8 +187,109 @@ class WebViewActivity : AppCompatActivity() {
                 webView.setVisibility(View.VISIBLE)
                 overlayView.visibility = View.GONE
                 injectScripts();
+                flag = true
                 super.onPageFinished(view, url)
             }
+        }
+//
+//        override fun shouldOverrideUrlLoading(
+//            view: WebView?,
+//            request: WebResourceRequest?
+//        ): Boolean {
+//            Log.d("override", "start")
+//            if (flag) {
+//
+//                val aURL = URL(BuildConfig.URL);
+//
+//                val conn = aURL.openConnection()
+//                conn.connect()
+//
+//                val istream = conn.getInputStream();
+//                Log.d("IS", istream.toString())
+//                return true;
+//            } else
+//                return super.shouldOverrideUrlLoading(view, request)
+//        }
+
+
+        private fun handleRequestViaOkHttp(url: String) {
+
+            val httpClient = OkHttpClient()
+
+            thread {
+                try {
+                    val request = Request.Builder().url(url).build()
+                    print("Request: $request")
+                  //  val response = httpClient.newCall(request).execute()
+                  //  println("Response: " + response.headers().size())
+
+                    try {
+                        val okResponse=
+                            httpClient.newCall(request).execute()
+                        if (okResponse != null) {
+                            val statusCode: Int = okResponse.code()
+                            val encoding = "UTF-8"
+                            val mimeType = "application/json"
+                            val reasonPhrase = "OK"
+                            val responseHeaders: Map<String, String> =
+                                HashMap()
+                            if (okResponse.headers() != null) {
+                                if (okResponse.headers().size() > 0) {
+                                    for (i in 0 until okResponse.headers().size()) {
+                                        val key: String = okResponse.headers().name(i)
+                                        val value: String = okResponse.headers().value(i)
+                                        println ("key $key, value $value")
+//                                        responseHeaders.put(key, value)
+//                                        if (key.toLowerCase().contains("x-cart-itemcount")) {
+//                                            Log.i(TAG, "setting cart item count")
+//                                            app.setCartItemsCount(value.toInt())
+//                                        }
+                                    }
+                                }
+                            }
+//                            val data: InputStream = ByteArrayInputStream(
+//                                okResponse.body().string()
+//                                    .getBytes(StandardCharsets.UTF_8)
+//                            )
+//                            Log.i(TAG, "okResponse code:" + okResponse.code())
+//                            returnResponse = WebResourceResponse(
+//                                mimeType,
+//                                encoding,
+//                                statusCode,
+//                                reasonPhrase,
+//                                responseHeaders,
+//                                data
+                         //   )
+                        } else {
+                            Log.w("sdsd", "okResponse fail")
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+
+
+//
+//
+//                    val data: InputStream = ByteArrayInputStream(
+//                        response.body().bytes()
+//                    )
+//                    Log.i("ddd", "okResponse code:" + response.code())
+//                    print("data" + data)
+//                    val body = response.body()
+//                    println("Response2: " + body)
+                } catch (e: Exception) {
+                }
+            }
+        }
+
+
+        override fun shouldInterceptRequest(
+            view: WebView?,
+            request: WebResourceRequest?
+        ): WebResourceResponse? {
+
+            handleRequestViaOkHttp(BuildConfig.URL)
+            return super.shouldInterceptRequest(view, request)
         }
 
         override fun onReceivedError(
@@ -218,6 +356,12 @@ class WebViewActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun setResult(value: String?, msg: String, status: String) {
+            // You can control your flow by checking status
+        }
+
+        @JavascriptInterface
+        fun isFound(value: String?) {
+            Log.d("isFound", value)
             // You can control your flow by checking status
         }
     }
