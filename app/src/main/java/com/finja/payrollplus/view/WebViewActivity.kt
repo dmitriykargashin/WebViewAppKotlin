@@ -11,6 +11,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.webkit.*
@@ -26,10 +27,9 @@ import com.squareup.okhttp.OkHttpClient
 import com.squareup.okhttp.Request
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.general_custom_dialog_network_error.*
-import java.io.ByteArrayInputStream
 import java.io.IOException
-import java.io.InputStream
-import java.nio.charset.StandardCharsets
+import java.net.URLEncoder
+import java.nio.charset.Charset
 import kotlin.concurrent.thread
 
 
@@ -76,13 +76,27 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+//    private fun clickRefresh() {
+//        webView.evaluateJavascript(
+//            "click();",
+//            ValueCallback<String?> { s ->
+//                Log.d("LogName", s) // Prints 'this'
+//            })
+//    }
+
+
     private fun clickRefresh() {
         webView.evaluateJavascript(
-            "click();",
+            "isWorking = true;\n" +
+                    "      isGotResponse = false;\n" +
+                    "                         //  console.log(\"start repeat\")\n" +
+                    "      clickRefreshButton();\n" +
+                    "      console.log(\"clicked\");",
             ValueCallback<String?> { s ->
                 Log.d("LogName", s) // Prints 'this'
             })
     }
+
 
 
     private fun checkIsFound() {
@@ -93,6 +107,47 @@ class WebViewActivity : AppCompatActivity() {
             ValueCallback<String?> { s ->
                 Log.d("LogName", s) // Prints 'this'
             })
+    }
+
+
+    private fun injectJS() {
+        try {
+            Log.d("inject", "start")
+            val inputStream = assets.open("book.js")
+            val buffer = ByteArray(inputStream.available())
+            inputStream.read(buffer)
+            inputStream.close()
+
+            // preserve non-english letters
+            val uriEncoded: String =
+                URLEncoder.encode(String(buffer, Charset.forName("UTF-8")), "UTF-8").replace("+", "%20")
+          //  Log.d("inject", uriEncoded)
+            val encoded: String =
+                Base64.encodeToString(uriEncoded.toByteArray(), Base64.NO_WRAP)
+          //  Log.d("inject", encoded)
+            webView.loadUrl(
+                "javascript:(function() {" +
+
+
+                      //  "var parent = document.getElementsByTagName('head').item(0);" +
+                        "const parent = (document.head || document.documentElement);" +
+
+                        "const script = document.createElement('script');" +
+                        "script.type = 'text/javascript';" +  // don't forget to use decodeURIComponent after base64 decoding
+
+                        "script.innerHTML = decodeURIComponent(window.atob('" + encoded + "'));" +
+
+                        "script.onchange= function () {\n" +
+                        "    this.remove();\n" +
+                        "};\n" +
+                        " parent.appendChild(script)" +
+                        "})()"
+            )
+
+            Log.d("inject", "yes")
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun injectScripts() {
@@ -186,7 +241,8 @@ class WebViewActivity : AppCompatActivity() {
             if (networkUtils.haveNetworkConnection(this@WebViewActivity)) {
                 webView.setVisibility(View.VISIBLE)
                 overlayView.visibility = View.GONE
-                injectScripts();
+              //  injectScripts();
+                injectJS();
                 flag = true
                 super.onPageFinished(view, url)
             }
@@ -288,7 +344,7 @@ class WebViewActivity : AppCompatActivity() {
             request: WebResourceRequest?
         ): WebResourceResponse? {
 
-            handleRequestViaOkHttp(BuildConfig.URL)
+         //   handleRequestViaOkHttp(BuildConfig.URL)
             return super.shouldInterceptRequest(view, request)
         }
 
