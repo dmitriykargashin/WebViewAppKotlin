@@ -1,6 +1,6 @@
 let isWorking = false
 let isGotResponse = false
-
+let confirmMethod = 0;
 
 try {
 
@@ -14,7 +14,7 @@ try {
         let startTime
 
 
-        let confirmMethod = 0;
+   //     let confirmMethod = 0;
         let delay = 1500;
         let delayMethod = false;
 //        let isWorking = false;
@@ -137,7 +137,7 @@ try {
 
                                     isGotResponse = true
 
-
+  console.log("resultsCount =" + resultsCount)
                                     if (resultsCount > 0) {
                                         isWorking = false
                                         window.postMessage({

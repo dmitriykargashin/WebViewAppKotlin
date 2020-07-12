@@ -89,7 +89,8 @@ class WebViewActivity : AppCompatActivity() {
         webView.evaluateJavascript(
             "isWorking = true;\n" +
                     "      isGotResponse = false;\n" +
-                    "      console.log(\"start repeat\")\n" +
+                    "     confirmMethod = 1;" +
+                    " console.log(\"start repeat\")\n" +
                     "      clickRefreshButton();\n" +
                     "      console.log(\"clicked\");",
             ValueCallback<String?> { s ->
