@@ -1,6 +1,6 @@
-//let isWorking = false
-//let isGotResponse = false
-//let refreshBtn
+let isWorking = false
+let isGotResponse = false
+
 
 try {
 
@@ -14,11 +14,11 @@ try {
         let startTime
 
 
-        let confirmMethod = 0
-        let delay = 1500
-        let delayMethod = false
-        let isWorking = false
-        let isGotResponse = false
+        let confirmMethod = 0;
+        let delay = 1500;
+        let delayMethod = false;
+//        let isWorking = false;
+//        let isGotResponse = false;
         //   var endtime
 
      console.log("inject from JS");
@@ -84,10 +84,10 @@ try {
         };
 
         XHR.send = function (postData) {
-
+   console.log("add eventlistener load");
             this.addEventListener('load', function () {
 
-
+      console.log("start eventlistener load");
                 var myUrl = this._url ? this._url.toLowerCase() : this._url;
                 var urlForFetch = this._url
 
@@ -113,7 +113,7 @@ try {
                     //     console.log("this._requestHeaders - " + this._requestHeaders);
                     //if (this._requestHeaders. includes('EXACT_MATCH'))
 
-                    // console.log("isWorking before if=" + isWorking)
+                     console.log("isWorking before if=" + isWorking)
                     if (isWorking) {
 
                         var responseHeaders = this.getAllResponseHeaders();
@@ -133,7 +133,7 @@ try {
 
                                         if (wo) resultsCount = Object.keys(wo).length
                                     }
-
+  console.log("isGotResponse =" + isGotResponse)
 
                                     isGotResponse = true
 

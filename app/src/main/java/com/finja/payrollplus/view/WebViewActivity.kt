@@ -38,7 +38,7 @@ class WebViewActivity : AppCompatActivity() {
     private val networkUtils = NetworkUtils()
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var flag = false
-
+    private var injected = false
 
     override fun onStart() {
         super.onStart()
@@ -89,14 +89,13 @@ class WebViewActivity : AppCompatActivity() {
         webView.evaluateJavascript(
             "isWorking = true;\n" +
                     "      isGotResponse = false;\n" +
-                    "                         //  console.log(\"start repeat\")\n" +
+                    "      console.log(\"start repeat\")\n" +
                     "      clickRefreshButton();\n" +
                     "      console.log(\"clicked\");",
             ValueCallback<String?> { s ->
                 Log.d("LogName", s) // Prints 'this'
             })
     }
-
 
 
     private fun checkIsFound() {
@@ -120,27 +119,33 @@ class WebViewActivity : AppCompatActivity() {
 
             // preserve non-english letters
             val uriEncoded: String =
-                URLEncoder.encode(String(buffer, Charset.forName("UTF-8")), "UTF-8").replace("+", "%20")
-          //  Log.d("inject", uriEncoded)
+                URLEncoder.encode(String(buffer, Charset.forName("UTF-8")), "UTF-8")
+                    .replace("+", "%20")
+            //  Log.d("inject", uriEncoded)
             val encoded: String =
                 Base64.encodeToString(uriEncoded.toByteArray(), Base64.NO_WRAP)
-          //  Log.d("inject", encoded)
+              Log.d("console", "Start injecting from android")
             webView.loadUrl(
                 "javascript:(function() {" +
 
 
-                      //  "var parent = document.getElementsByTagName('head').item(0);" +
-                        "const parent = (document.head || document.documentElement);" +
+                        //  "var parent = document.getElementsByTagName('head').item(0);" +
+                        //      "const parent = (document.head || document.documentElement);" +
 
-                        "const script = document.createElement('script');" +
+                        "console.log('start injecting'); " +
+                        "var script = document.createElement('script');" +
                         "script.type = 'text/javascript';" +  // don't forget to use decodeURIComponent after base64 decoding
 
                         "script.innerHTML = decodeURIComponent(window.atob('" + encoded + "'));" +
 
+                        "console.log(script);" +
                         "script.onchange= function () {\n" +
                         "    this.remove();\n" +
                         "};\n" +
-                        " parent.appendChild(script)" +
+
+                        "(document.head || document.documentElement).appendChild(script);" +
+                        //      " parent.appendChild(script)" +
+
                         "})()"
             )
 
@@ -241,8 +246,15 @@ class WebViewActivity : AppCompatActivity() {
             if (networkUtils.haveNetworkConnection(this@WebViewActivity)) {
                 webView.setVisibility(View.VISIBLE)
                 overlayView.visibility = View.GONE
-              //  injectScripts();
-                injectJS();
+                //  injectScripts();
+                Log.d("console", "finished")
+                Log.d("console", "injected $injected")
+                Log.d("console", "url $url")
+                if (!injected && url == "https://relay.amazon.com/tours/loadboard?")  {
+                    Log.d("console", "injected!!!")
+                    injectJS();
+                    injected = true
+                }
                 flag = true
                 super.onPageFinished(view, url)
             }
@@ -276,11 +288,11 @@ class WebViewActivity : AppCompatActivity() {
                 try {
                     val request = Request.Builder().url(url).build()
                     print("Request: $request")
-                  //  val response = httpClient.newCall(request).execute()
-                  //  println("Response: " + response.headers().size())
+                    //  val response = httpClient.newCall(request).execute()
+                    //  println("Response: " + response.headers().size())
 
                     try {
-                        val okResponse=
+                        val okResponse =
                             httpClient.newCall(request).execute()
                         if (okResponse != null) {
                             val statusCode: Int = okResponse.code()
@@ -294,7 +306,7 @@ class WebViewActivity : AppCompatActivity() {
                                     for (i in 0 until okResponse.headers().size()) {
                                         val key: String = okResponse.headers().name(i)
                                         val value: String = okResponse.headers().value(i)
-                                        println ("key $key, value $value")
+                                        println("key $key, value $value")
 //                                        responseHeaders.put(key, value)
 //                                        if (key.toLowerCase().contains("x-cart-itemcount")) {
 //                                            Log.i(TAG, "setting cart item count")
@@ -315,7 +327,7 @@ class WebViewActivity : AppCompatActivity() {
 //                                reasonPhrase,
 //                                responseHeaders,
 //                                data
-                         //   )
+                            //   )
                         } else {
                             Log.w("sdsd", "okResponse fail")
                         }
@@ -344,7 +356,7 @@ class WebViewActivity : AppCompatActivity() {
             request: WebResourceRequest?
         ): WebResourceResponse? {
 
-         //   handleRequestViaOkHttp(BuildConfig.URL)
+            //   handleRequestViaOkHttp(BuildConfig.URL)
             return super.shouldInterceptRequest(view, request)
         }
 
