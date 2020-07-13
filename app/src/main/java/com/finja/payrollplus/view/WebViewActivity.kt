@@ -10,7 +10,6 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -42,6 +41,10 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+fab.bringToFront()
+        fab.setOnClickListener { Log.d("console","pressed")}
+
+
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
             mNotificationReceiverInternet,
@@ -55,26 +58,26 @@ class WebViewActivity : AppCompatActivity() {
         }
 
 
-
-
-        button.setOnClickListener {
-            Handler().postDelayed({
-                clickRefresh();
-            }, 2000)
-//            Timer("SettingUp", false).schedule(2000) {
+//        button.setOnClickListener {
 //
-//            }
-
-
-        }
-
-
-        button2.setOnClickListener {
-            checkIsFound()
-
-
-        }
-    }
+//            clickRefresh()
+////            Handler().postDelayed({
+////                clickRefresh();
+////            }, 2000)
+//////            Timer("SettingUp", false).schedule(2000) {
+//////
+//////            }
+//
+//
+//        }
+//
+//
+//        button2.setOnClickListener {
+//         //   checkIsFound()
+//
+//
+//        }
+//    }
 
 //    private fun clickRefresh() {
 //        webView.evaluateJavascript(
@@ -83,7 +86,7 @@ class WebViewActivity : AppCompatActivity() {
 //                Log.d("LogName", s) // Prints 'this'
 //            })
 //    }
-
+    }
 
     private fun clickRefresh() {
         webView.evaluateJavascript(
@@ -98,16 +101,16 @@ class WebViewActivity : AppCompatActivity() {
             })
     }
 
-
-    private fun checkIsFound() {
-        webView.evaluateJavascript(
-            "found=isFound();" +
-                    "android.isFound(found);" +
-                    "",
-            ValueCallback<String?> { s ->
-                Log.d("LogName", s) // Prints 'this'
-            })
-    }
+//
+//    private fun checkIsFound() {
+//        webView.evaluateJavascript(
+//            "found=isFound();" +
+//                    "android.isFound(found);" +
+//                    "",
+//            ValueCallback<String?> { s ->
+//                Log.d("LogName", s) // Prints 'this'
+//            })
+//    }
 
 
     private fun injectJS() {
