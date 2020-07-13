@@ -14,6 +14,9 @@ import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.webkit.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDialog
@@ -32,12 +35,18 @@ import java.nio.charset.Charset
 import kotlin.concurrent.thread
 
 
-class WebViewActivity : AppCompatActivity() {
+class WebViewActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener{
 
     private val networkUtils = NetworkUtils()
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var flag = false
     private var injected = false
+
+    var refreshRate = arrayOf(
+        "10 msec", "30 msec", "50 msec", "100 msec", "200 msec", "300 msec", "400 msec", "500 msec", "700 msec", "1000 msec",
+        "1.5 sec", "2 sec", "3 sec", "4 sec", "5 sec", "8 sec", "10 sec", "15 sec", "20 sec", "30 sec"
+    )
+
 
     override fun onStart() {
         super.onStart()
@@ -86,6 +95,43 @@ fab.bringToFront()
 //                Log.d("LogName", s) // Prints 'this'
 //            })
 //    }
+
+//        editText.setOnClickListener {
+//            PopupMenu(this, editText).apply {
+//                menuInflater.inflate(R.menu.menu_refresh_rate, menu)
+//                setOnMenuItemClickListener { item ->
+//                    editText.setText(item.title)
+//                    true
+//                }
+//                show()
+//            }
+//        }
+
+
+        val spin: Spinner = findViewById<View>(R.id.spinner1) as Spinner
+        val adapter: ArrayAdapter<String> =
+            ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, refreshRate)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spin.setAdapter(adapter)
+        spin.setOnItemSelectedListener(this)
+
+    }
+
+    override fun onNothingSelected(p0: AdapterView<*>?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onItemSelected(
+        arg0: AdapterView<*>?,
+        arg1: View?,
+        position: Int,
+        id: Long
+    ) {
+        Toast.makeText(
+            applicationContext,
+            "Selected User: " + refreshRate[position],
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun clickRefresh() {
@@ -248,7 +294,8 @@ fab.bringToFront()
 
         override fun onPageFinished(view: WebView, url: String) {
             if (networkUtils.haveNetworkConnection(this@WebViewActivity)) {
-                webView.setVisibility(View.VISIBLE)
+              //  webView.setVisibility(View.VISIBLE)
+                webView.setVisibility(View.GONE)
                 overlayView.visibility = View.GONE
                 //  injectScripts();
                 Log.d("console", "finished")
