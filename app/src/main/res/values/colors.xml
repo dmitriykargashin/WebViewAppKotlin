@@ -6,6 +6,7 @@
     <color name="transparent">#00000000</color>
     <color name="colorWhite">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="red">#FF1744</color>
     <color name="darkGray">#9E9E9E</color>
     <color name="coloroverlay">#99000000</color>
     <color name="colorMainControl">#022328</color>

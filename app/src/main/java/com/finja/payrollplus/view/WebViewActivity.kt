@@ -1,5 +1,7 @@
 package com.finja.payrollplus.view
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
@@ -14,6 +16,9 @@ import android.util.Base64
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewAnimationUtils
+import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.webkit.*
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -23,6 +28,8 @@ import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDialog
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.transition.Fade
+import androidx.transition.TransitionManager
 import com.finja.payrollplus.BuildConfig
 import com.finja.payrollplus.R
 import com.finja.payrollplus.utilities.NetworkChangeReceiver
@@ -36,6 +43,7 @@ import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import kotlin.concurrent.thread
+import kotlin.math.hypot
 
 
 class WebViewActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
@@ -72,7 +80,9 @@ class WebViewActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener 
     override fun onStart() {
         super.onStart()
         fab.bringToFront()
-        fab.setOnClickListener { Log.d("console", "pressed") }
+        fab.setOnClickListener {
+            clickRefresh()
+            Log.d("console", "pressed") }
 
 
 
@@ -166,12 +176,135 @@ class WebViewActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener 
 
     private fun showFilterFragment() {
         filterLayout.bringToFront()
-        filterLayout.visibility = View.VISIBLE
+
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+
+            //  forceRippleAnimation(tvOnlineResult)
+
+          //  val location = IntArray(2)
+           // fab.getLocationOnScreen(location)
+
+            val x = container.width
+            val y =  container.height
+
+            val startRadius = 0
+            val endRadius =
+                hypot(
+                    container.width.toDouble(),
+                    container.height.toDouble()
+                )
+                    .toInt()
+
+
+            val anim =
+                ViewAnimationUtils.createCircularReveal(
+                    filterLayout,
+                    x,
+                    y,
+                    startRadius.toFloat(),
+                    endRadius.toFloat()
+                ).apply {
+                    interpolator = AccelerateDecelerateInterpolator()
+                    duration = 300
+                }
+            // make the view invisible when the animation is done
+            /*    anim.addListener(object : AnimatorListenerAdapter() {
+
+                    override fun onAnimationEnd(animation: Animator) {
+                        super.onAnimationEnd(animation)
+                        //           mainConstraintLayout.visibility = View.GONE
+
+                        // viewModel.clearAll()
+                    }
+                })*/
+          //  viewModel.setIsPerLayoutVisible(true)
+            filterLayout.visibility = View.VISIBLE
+
+            anim.start()
+
+
+        } else {
+          //  viewModel.setIsPerLayoutVisible(true)
+            filterLayout.visibility = View.VISIBLE
+
+        }
+
+
     }
 
     private fun showHomeFragment() {
 
-        filterLayout.visibility = View.GONE
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+
+            //  forceRippleAnimation(tvOnlineResult)
+
+//            val location = IntArray(2)
+//            fab.getLocationOnScreen(location)
+
+            val x = 0
+            val y = container.height
+
+            val endRadius = 0
+            val startRadius =
+                hypot(
+                    container.width.toDouble(),
+                    container.height.toDouble()
+                )
+                    .toInt()
+
+
+            val anim =
+                ViewAnimationUtils.createCircularReveal(
+                    filterLayout,
+                    x,
+                    y,
+                    startRadius.toFloat(),
+                    endRadius.toFloat()
+                ).apply {
+                    interpolator = AccelerateDecelerateInterpolator()
+                    duration = 300
+                }
+
+            anim.addListener(object : AnimatorListenerAdapter() {
+
+                override fun onAnimationEnd(animation: Animator) {
+                    super.onAnimationEnd(animation)
+                  //  viewModel.setIsFormatsLayoutVisible(false)
+                    filterLayout.visibility = View.GONE
+
+                    //  viewModel.clearAll()
+                }
+            })
+
+            // make the view invisible when the animation is done
+            /*    anim.addListener(object : AnimatorListenerAdapter() {
+
+                    override fun onAnimationEnd(animation: Animator) {
+                        super.onAnimationEnd(animation)
+                        //           mainConstraintLayout.visibility = View.GONE
+
+                        // viewModel.clearAll()
+                    }
+                })*/
+            //  viewModel.setIsPerLayoutVisible(true)
+         //   filterLayout.visibility = View.GONE
+
+            anim.start()
+
+
+        } else {
+            //  viewModel.setIsPerLayoutVisible(true)
+            filterLayout.visibility = View.GONE
+
+        }
+
+
     }
 
     override fun onNothingSelected(p0: AdapterView<*>?) {
