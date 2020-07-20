@@ -5,15 +5,15 @@
     <item
         android:id="@+id/navigation_home"
         android:icon="@drawable/ic_home_black_24dp"
-        android:title="home"
-      />
+        android:title="Home"
+       />
 
     <item android:title=""
             android:enabled="false"/>
     <item
-        android:id="@+id/navigation_notifications"
+        android:id="@+id/navigation_filter"
         android:icon="@drawable/ic_baseline_filter_list_24"
-        android:title="filter"
+        android:title="Filter"
        />
 
 </menu>

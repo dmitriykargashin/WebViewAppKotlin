@@ -12,12 +12,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.webkit.*
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDialog
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -25,6 +27,7 @@ import com.finja.payrollplus.BuildConfig
 import com.finja.payrollplus.R
 import com.finja.payrollplus.utilities.NetworkChangeReceiver
 import com.finja.payrollplus.utilities.NetworkUtils
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.squareup.okhttp.OkHttpClient
 import com.squareup.okhttp.Request
 import kotlinx.android.synthetic.main.activity_main.*
@@ -35,7 +38,7 @@ import java.nio.charset.Charset
 import kotlin.concurrent.thread
 
 
-class WebViewActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener{
+class WebViewActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     private val networkUtils = NetworkUtils()
     private val networkChangeReceiver = NetworkChangeReceiver()
@@ -43,15 +46,33 @@ class WebViewActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener{
     private var injected = false
 
     var refreshRate = arrayOf(
-        "10 msec", "30 msec", "50 msec", "100 msec", "200 msec", "300 msec", "400 msec", "500 msec", "700 msec", "1000 msec",
-        "1.5 sec", "2 sec", "3 sec", "4 sec", "5 sec", "8 sec", "10 sec", "15 sec", "20 sec", "30 sec"
+        "10 msec",
+        "30 msec",
+        "50 msec",
+        "100 msec",
+        "200 msec",
+        "300 msec",
+        "400 msec",
+        "500 msec",
+        "700 msec",
+        "1000 msec",
+        "1.5 sec",
+        "2 sec",
+        "3 sec",
+        "4 sec",
+        "5 sec",
+        "8 sec",
+        "10 sec",
+        "15 sec",
+        "20 sec",
+        "30 sec"
     )
 
 
     override fun onStart() {
         super.onStart()
-fab.bringToFront()
-        fab.setOnClickListener { Log.d("console","pressed")}
+        fab.bringToFront()
+        fab.setOnClickListener { Log.d("console", "pressed") }
 
 
 
@@ -112,9 +133,45 @@ fab.bringToFront()
         val adapter: ArrayAdapter<String> =
             ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, refreshRate)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spin.setAdapter(adapter)
-        spin.setOnItemSelectedListener(this)
+        spin.adapter = adapter
+        spin.onItemSelectedListener = this
 
+        nav_view.setOnNavigationItemSelectedListener(object :
+            BottomNavigationView.OnNavigationItemSelectedListener {
+            override fun onNavigationItemSelected(@NonNull item: MenuItem): Boolean {
+                when (item.itemId) {
+                    R.id.navigation_home -> {
+                        Log.d("console", "home")
+                        // viewFragment(HomeFragment(), FRAGMENT_HOME)
+                        // item.isChecked = true
+                        showHomeFragment()
+
+                        return true
+                    }
+                    R.id.navigation_filter -> {
+                        Log.d("console", "filter")
+                        //  item.isChecked = true
+                        //   viewFragment(OneFragment(), FRAGMENT_OTHER)
+                        showFilterFragment()
+                        return true
+                    }
+
+                }
+                return false
+            }
+        })
+
+
+    }
+
+    private fun showFilterFragment() {
+        filterLayout.bringToFront()
+        filterLayout.visibility = View.VISIBLE
+    }
+
+    private fun showHomeFragment() {
+
+        filterLayout.visibility = View.GONE
     }
 
     override fun onNothingSelected(p0: AdapterView<*>?) {
@@ -174,7 +231,7 @@ fab.bringToFront()
             //  Log.d("inject", uriEncoded)
             val encoded: String =
                 Base64.encodeToString(uriEncoded.toByteArray(), Base64.NO_WRAP)
-              Log.d("console", "Start injecting from android")
+            Log.d("console", "Start injecting from android")
             webView.loadUrl(
                 "javascript:(function() {" +
 
@@ -294,14 +351,14 @@ fab.bringToFront()
 
         override fun onPageFinished(view: WebView, url: String) {
             if (networkUtils.haveNetworkConnection(this@WebViewActivity)) {
-              //  webView.setVisibility(View.VISIBLE)
-                webView.setVisibility(View.GONE)
+                webView.setVisibility(View.VISIBLE)
+                //   webView.setVisibility(View.GONE)
                 overlayView.visibility = View.GONE
                 //  injectScripts();
                 Log.d("console", "finished")
                 Log.d("console", "injected $injected")
                 Log.d("console", "url $url")
-                if (!injected && url == "https://relay.amazon.com/tours/loadboard?")  {
+                if (!injected && url == "https://relay.amazon.com/tours/loadboard?") {
                     Log.d("console", "injected!!!")
                     injectJS();
                     injected = true
